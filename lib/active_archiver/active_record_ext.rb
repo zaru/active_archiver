@@ -30,12 +30,12 @@ module ActiveArchiver
         end
       end
       CarrierWave::Uploader::Base.active_archiver_blob_data = false
-      hash.to_json
+      hash
     end
 
-    def archive(basename = ["", ".json"], dir = Dir.tmpdir)
+    def archive(includes: [], basename: ["", ".json"], dir: Dir.tmpdir)
       Tempfile.open(basename, dir) do |fp|
-        fp.puts export
+        fp.puts export(includes: includes).to_json
         fp
       end
     end
