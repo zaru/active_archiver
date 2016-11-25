@@ -10,25 +10,7 @@ module ActiveArchiver
       hash = {}
       hash[:attributes] = self.serializable_hash
       hash[:associations] = []
-      includes.each do |model|
-        if self.send(model).respond_to?(:class_name)
-          model_name = self.send(model).class_name
-          self.send(model).all.each do |r|
-            hash[:associations] << {
-              model_name: model_name,
-              association_name: model,
-              attributes: r.serializable_hash
-            }
-          end
-        else
-          model_name = self.send(model).class.class_name
-          hash[:associations] << {
-            model_name: model_name,
-            association_name: model,
-            attributes: self.send(model).serializable_hash
-          }
-        end
-      end
+      hash = recursive_export(hash, self, includes)
       CarrierWave::Uploader::Base.active_archiver_blob_data = false
       hash
     end
@@ -40,23 +22,67 @@ module ActiveArchiver
       end
     end
 
+    private
+
+    def recursive_export(hash, receiver, models)
+      case models
+        when Array
+          models.each do |v|
+            recursive_export(hash, receiver, v)
+          end
+        when Hash
+          models.each do |k,v|
+            recursive_export(hash, receiver, k)
+            recursive_export(hash, receiver.send(k), v)
+          end
+        else
+          if receiver.respond_to?(:class_name)
+            receiver.each do |rec|
+              hash = set_data(hash, rec, models)
+            end
+          else
+            hash = set_data(hash, receiver, models)
+          end
+      end
+
+      hash
+    end
+
+    def set_data(hash, receiver, models)
+      if receiver.send(models).respond_to?(:class_name)
+        model_name = receiver.send(models).class_name
+        receiver.send(models).all.each do |r|
+          hash[:associations] << data_struct(model_name, models, r.serializable_hash)
+        end
+      else
+        model_name = receiver.send(models).class.class_name
+        hash[:associations] << data_struct(model_name, models, receiver.send(models).serializable_hash)
+      end
+      hash
+    end
+
+    def data_struct(model_name, association_name, attributes)
+      {
+        model_name: model_name,
+        association_name: association_name,
+        attributes: attributes
+      }
+    end
+
     module ClassMethods
-      def import(hash)
+      def import(hash, validate: false)
         hash = hash.with_indifferent_access
         obj = self.find_or_initialize_by(id: hash["attributes"]["id"])
         obj.attributes = hash["attributes"]
         obj = restore_image(obj, hash)
+        obj.save(validate: validate)
+
         hash["associations"].each do |r|
           r_obj = Object.const_get(r["model_name"]).find_or_initialize_by(id: r["attributes"]["id"])
           r_obj.attributes = r["attributes"]
           r_obj = restore_image(r_obj, r)
-          if obj.send(r["association_name"]).respond_to?(:<<)
-            obj.send("#{r['association_name']}") << r_obj
-          else
-            obj.send("#{r['association_name']}=", r_obj)
-          end
+          r_obj.save(validate: validate)
         end
-        obj.save
       end
 
       private
