@@ -72,6 +72,23 @@ export = User.last.export(includes: [:photos])
           "data:image/png;base64,iVBORw...
 ```
 
+To specify a nested model.
+
+```
+class User < ApplicationRecord
+  has_many :photos
+  has_many :pets
+end
+
+class Pet < ApplicationRecord
+  has_many :pet_photos
+end
+```
+
+```
+export = User.last.export(includes: [:photos, pets:[:pet_photos]])
+```
+
 ### import
 
 ```
