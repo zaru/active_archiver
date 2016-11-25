@@ -1,5 +1,6 @@
 require "active_archiver/version"
 require "carrierwave/serialization"
+require "active_archiver/base64_decode"
 require "active_archiver/active_record_ext"
 
 module ActiveArchiver

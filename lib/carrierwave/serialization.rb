@@ -14,9 +14,11 @@ module CarrierWave
         if @@active_archiver_blob_data
         {
           url: url,
+          file_name: File.basename(url),
           blob: "data:#{content_type};base64,#{Base64.strict_encode64(read)}"
         }.merge Hash[versions.map { |name, version| [name, {
           url: version.url,
+          file_name: File.basename(version.url),
           blob: "data:#{version.content_type};base64,#{Base64.strict_encode64(version.read)}"
         }] }]
         else
