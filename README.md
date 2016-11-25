@@ -1,6 +1,6 @@
 # ActiveArchiver
 
-Provide export / import to ActiveRecord.
+Provide export / import to ActiveRecord and support CarrierWave.
 
 ## Installation
 
