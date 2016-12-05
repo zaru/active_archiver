@@ -12,7 +12,10 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Provide export / import to ActiveRecord}
   spec.description   = %q{Provide export / import to ActiveRecord}
   spec.homepage      = "https://github.com/zaru/active_archiver"
-
+  
+  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.bindir        = "exe"
+  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activerecord", ">= 4"
