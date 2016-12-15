@@ -36,7 +36,7 @@ module ActiveArchiver
             recursive_export(hash, receiver.send(k), v)
           end
         else
-          if receiver.respond_to?(:class_name)
+          if receiver.respond_to?(:size)
             receiver.each do |rec|
               hash = set_data(hash, rec, models)
             end
