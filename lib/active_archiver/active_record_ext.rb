@@ -49,13 +49,13 @@ module ActiveArchiver
     end
 
     def set_data(hash, receiver, models)
-      if receiver.send(models).respond_to?(:class_name)
-        model_name = receiver.send(models).class_name
+      if receiver.send(models).respond_to?(:size)
+        model_name = receiver.send(models).model_name.plural
         receiver.send(models).all.each do |r|
           hash[:associations] << data_struct(model_name, models, r.serializable_hash)
         end
       else
-        model_name = receiver.send(models).class.class_name
+        model_name = receiver.send(models).model_name.singular
         hash[:associations] << data_struct(model_name, models, receiver.send(models).serializable_hash)
       end
       hash
